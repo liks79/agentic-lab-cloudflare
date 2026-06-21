@@ -1,0 +1,69 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build & compile output
+dist/
+*.tsbuildinfo
+worker-configuration.d.ts
+
+# Wrangler / Miniflare local state
+.wrangler/
+.mf/
+wrangler.lock
+
+# Vitest incremental build state
+vitest.config.ts.timestamp-*
+
+# Environment & Secrets — NEVER commit these
+.env
+.env.local
+.env.*.local
+.dev.vars
+.dev.vars.*
+wrangler.secrets.toml
+
+# Credential files (extra safety net)
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+.eggs/
+
+# Test & eval artefacts (may contain live incident data)
+evals/results/
+coverage/
+*.snap
+
+# Demo videos / GIFs (large binaries)
+demo/
+
+# Dashboard build output
+dashboard/dist/
+dashboard/.next/
+dashboard/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*

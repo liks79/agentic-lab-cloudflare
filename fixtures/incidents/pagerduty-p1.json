@@ -1,0 +1,22 @@
+{
+  "messages": [
+    {
+      "event": "incident.trigger",
+      "incident": {
+        "id": "PD-MOCK-001",
+        "title": "CRITICAL: Payment service 5xx error rate spike — 45% of requests failing",
+        "html_url": "https://example.pagerduty.com/incidents/PD-MOCK-001",
+        "urgency": "high",
+        "service": {
+          "name": "payment-service-prod"
+        },
+        "description": "Error rate for /api/v2/payment/process exceeded 40% threshold. P99 latency: 8200ms. Alert triggered at 2026-06-21T03:14:22Z. Last deploy: 2h ago (v2.4.1).",
+        "custom_fields": {
+          "environment": "production",
+          "region": "us-east-1",
+          "on_call_team": "payments-sre"
+        }
+      }
+    }
+  ]
+}

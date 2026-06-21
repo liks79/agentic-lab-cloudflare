@@ -1,0 +1,10 @@
+{
+  "alert_id": "DD-MOCK-8472",
+  "alert_title": "High DB connection pool exhaustion on orders-db-primary",
+  "alert_status": "Triggered",
+  "alert_priority": "P2",
+  "service": "orders-service",
+  "body": "DB connection pool utilization reached 97% (threshold: 90%). Active connections: 485/500. Idle connections: 3. Wait queue: 142. Longest waiting query: 18s. Host: orders-db-primary.internal.",
+  "url": "https://app.datadoghq.com/monitors/8472",
+  "tags": ["env:production", "service:orders-service", "team:backend"]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "eval-001",
+  "scenario": "Payment service 5xx spike after deploy",
+  "input": {
+    "source": "pagerduty",
+    "severity": "P1",
+    "service": "payment-service-prod",
+    "title": "Payment service 5xx error rate spike — 45% of requests failing",
+    "description": "Error rate for /api/v2/payment/process exceeded 40% threshold. P99 latency: 8200ms. Last deploy: v2.4.1 (2h ago)."
+  },
+  "ground_truth": {
+    "root_cause": "New deploy v2.4.1 introduced a missing database index on payment_transactions.created_at causing full table scans under load",
+    "mitigation": "Rollback to v2.4.0 via ArgoCD",
+    "mttr_minutes": 14,
+    "rca_keywords": ["database index", "table scan", "v2.4.1", "rollback"]
+  },
+  "expected_tools_called": ["log_search", "metrics_query", "incident_history"],
+  "expected_approval_required": true
+}

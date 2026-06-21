@@ -1,0 +1,39 @@
+{
+  "name": "cloudflare-sre-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Production-grade SRE Incident Response Automation Agent on Cloudflare Workers",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src --ext .ts",
+    "db:migrate:local": "wrangler d1 migrations apply sre-agent-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply sre-agent-db --remote",
+    "db:migrate:staging": "wrangler d1 migrations apply sre-agent-db-staging --env staging --remote",
+    "vectorize:create": "wrangler vectorize create sre-incident-embeddings --dimensions=1024 --metric=cosine",
+    "secrets:list": "wrangler secret list"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
+    "hono": "^4.6.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241022.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.0",
+    "@cloudflare/vitest-pool-workers": "^0.5.0",
+    "eslint": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "wrangler": "^3.80.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -1,0 +1,65 @@
+# .claudeignore — tells Claude Code which paths to skip during codebase exploration
+
+# Dependencies & generated code
+node_modules/
+dist/
+*.tsbuildinfo
+worker-configuration.d.ts
+
+# Lockfiles (large, machine-generated, no semantic value for exploration)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Wrangler / Miniflare local state (generated, not source)
+.wrangler/
+.mf/
+wrangler.lock
+
+# Vitest incremental build state
+vitest.config.ts.timestamp-*
+
+# Secrets & local environment (never read these)
+.dev.vars
+.dev.vars.*
+.env
+.env.local
+.env.*.local
+wrangler.secrets.toml
+secrets/
+credentials/
+*.key
+*.pem
+
+# Python bytecode & virtual envs
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Test artefacts
+*.snap
+coverage/
+
+# Eval results (generated output, may contain live incident data)
+evals/results/
+
+# Demo & media (binary, not readable)
+demo/
+
+# Dashboard build artefacts
+dashboard/dist/
+dashboard/.next/
+dashboard/node_modules/
+
+# OS & IDE noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*

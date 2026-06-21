@@ -1,0 +1,97 @@
+name = "cloudflare-sre-agent"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# ---- Durable Objects ----
+[[durable_objects.bindings]]
+name = "INCIDENT_SESSION"
+class_name = "IncidentSession"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["IncidentSession"]
+
+# ---- D1 Database ----
+[[d1_databases]]
+binding = "DB"
+database_name = "sre-agent-db"
+database_id = "REPLACE_WITH_YOUR_D1_ID"  # wrangler d1 create sre-agent-db
+
+# ---- Workers KV ----
+[[kv_namespaces]]
+binding = "CONFIG_KV"
+id = "REPLACE_WITH_YOUR_KV_ID"           # wrangler kv namespace create CONFIG_KV
+
+# ---- R2 Bucket ----
+[[r2_buckets]]
+binding = "INCIDENT_DOCS"
+bucket_name = "sre-agent-incident-docs"
+
+# ---- Queues (producer + consumer) ----
+[[queues.producers]]
+binding = "INCIDENT_QUEUE"
+queue = "sre-agent-incidents"
+
+[[queues.consumers]]
+queue = "sre-agent-incidents"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 3
+dead_letter_queue = "sre-agent-incidents-dlq"
+
+# ---- Vectorize ----
+[[vectorize]]
+binding = "INCIDENT_VECTORS"
+index_name = "sre-incident-embeddings"
+
+# ---- Workers AI ----
+[ai]
+binding = "AI"
+
+# ---- Rate Limiting ----
+[[unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 100, period = 60 }
+
+# ---- Environment Variables (non-secret) ----
+[vars]
+ENVIRONMENT = "production"
+LOG_LEVEL = "info"
+MAX_AGENT_STEPS = "10"
+RCA_CONFIDENCE_THRESHOLD = "0.85"
+LLM_FALLBACK_MODEL = "claude-sonnet-4-6"
+WORKERS_AI_MODEL = "@cf/meta/llama-3.1-70b-instruct"
+EMBEDDING_MODEL = "@cf/baai/bge-large-en-v1.5"
+
+# ---- Secrets (set via: wrangler secret put <KEY>) ----
+# Do NOT put actual values here. Listed for documentation only:
+# ANTHROPIC_API_KEY
+# PAGERDUTY_WEBHOOK_SECRET
+# PAGERDUTY_API_KEY
+# DATADOG_API_KEY
+# DATADOG_APP_KEY
+# SLACK_BOT_TOKEN
+# SLACK_SIGNING_SECRET
+# GITHUB_TOKEN
+# JIRA_API_TOKEN
+# ARGOCD_TOKEN
+# AWS_ACCESS_KEY_ID
+# AWS_SECRET_ACCESS_KEY
+# CF_AI_GATEWAY_ENDPOINT
+
+# ---- Staging Environment ----
+[env.staging]
+name = "cloudflare-sre-agent-staging"
+vars = { ENVIRONMENT = "staging", LOG_LEVEL = "debug" }
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "sre-agent-db-staging"
+database_id = "REPLACE_WITH_STAGING_D1_ID"
+
+[[env.staging.kv_namespaces]]
+binding = "CONFIG_KV"
+id = "REPLACE_WITH_STAGING_KV_ID"
