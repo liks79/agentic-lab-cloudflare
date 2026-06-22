@@ -5,6 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
+npm run commit           # Commitizen interactive prompt (conventional commits)
+
 npm run dev              # Local Wrangler dev server (miniflare)
 npm run type-check       # TypeScript type check (no emit)
 npm test                 # Run Vitest once
@@ -35,6 +37,9 @@ wrangler d1 execute sre-agent-db --command "SELECT ..." --remote
 ```
 
 Local environment variables go in `.dev.vars` (copied from `.env.example`). This file is gitignored.
+
+Commits follow the **Conventional Commits** spec via commitizen (`npm run commit`).
+Common types: `feat` · `fix` · `docs` · `chore` · `refactor` · `test` · `perf`.
 
 ## Architecture
 
