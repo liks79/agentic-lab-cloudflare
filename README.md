@@ -165,7 +165,7 @@ cloudflare-sre-agent/
 ### Local Development
 
 ```bash
-git clone https://github.com/liks79/cloudflare-sre-agent.git
+git clone https://github.com/liks79/agentic-lab-cloudflare.git
 cd cloudflare-sre-agent
 npm install
 
