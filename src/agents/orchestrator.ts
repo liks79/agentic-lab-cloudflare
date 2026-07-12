@@ -6,7 +6,7 @@ import { buildDurableObjectId } from '../middleware/tenant';
 import type { Env, IncidentEvent, AgentContext, AgentStep, RCAHypothesis } from '../types';
 import { TRIAGE_SYSTEM_PROMPT, RCA_SYSTEM_PROMPT } from '../llm/prompts';
 
-interface ReActResponse {
+export interface ReActResponse {
   thought: string;
   action: 'FINISH' | string;
   actionInput: Record<string, unknown>;
@@ -150,7 +150,7 @@ Respond in JSON format:
 }`;
 }
 
-function parseReActResponse(content: string): ReActResponse | null {
+export function parseReActResponse(content: string): ReActResponse | null {
   const jsonMatch = content.match(/\{[\s\S]*\}/);
   if (!jsonMatch) return null;
   try {
