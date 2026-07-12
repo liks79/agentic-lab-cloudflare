@@ -7,22 +7,35 @@ import type { Env, IncidentEvent, Severity } from '../types';
 
 export const webhookRouter = new Hono<{ Bindings: Env }>();
 
-const PagerDutyPayloadSchema = z.object({
-  messages: z.array(
-    z.object({
-      event: z.string(),
-      incident: z.object({
-        id: z.string(),
-        title: z.string(),
-        html_url: z.string().optional(),
-        urgency: z.enum(['high', 'low']),
-        service: z.object({ name: z.string() }),
-        description: z.string().optional(),
-        custom_fields: z.record(z.unknown()).optional(),
-      }),
-    }),
-  ),
+// PagerDuty v3 webhooks deliver a single outbound event per request:
+// { "event": { "event_type": "incident.triggered", "data": { ...incident } } }
+// https://developer.pagerduty.com/docs/webhooks/v3-overview/
+const PagerDutyV3EnvelopeSchema = z.object({
+  event: z.object({
+    id: z.string(),
+    event_type: z.string(),
+  }),
 });
+
+export const PagerDutyV3IncidentSchema = z.object({
+  event: z.object({
+    id: z.string(),
+    event_type: z.string(),
+    resource_type: z.string(),
+    occurred_at: z.string().optional(),
+    data: z.object({
+      id: z.string(),
+      title: z.string(),
+      html_url: z.string().optional(),
+      status: z.string().optional(),
+      urgency: z.enum(['high', 'low']),
+      service: z.object({ summary: z.string() }),
+      priority: z.object({ summary: z.string() }).nullable().optional(),
+    }),
+  }),
+});
+
+const PAGERDUTY_INCIDENT_EVENTS = new Set(['incident.triggered', 'incident.escalated']);
 
 webhookRouter.post('/pagerduty', async (c) => {
   if (!(await verifyPagerDutyHmac(c))) {
@@ -30,37 +43,50 @@ webhookRouter.post('/pagerduty', async (c) => {
   }
 
   const raw = await c.req.json();
-  const parsed = PagerDutyPayloadSchema.safeParse(raw);
+
+  // Accept-and-ignore non-incident events (e.g. pagey.ping test events) so
+  // PagerDuty's "Send Test Event" doesn't register as a delivery failure.
+  const envelope = PagerDutyV3EnvelopeSchema.safeParse(raw);
+  if (!envelope.success) {
+    return c.json({ error: 'Invalid payload' }, 400);
+  }
+  if (!PAGERDUTY_INCIDENT_EVENTS.has(envelope.data.event.event_type)) {
+    return c.json({ received: 0, ids: [] });
+  }
+
+  const parsed = PagerDutyV3IncidentSchema.safeParse(raw);
   if (!parsed.success) {
     return c.json({ error: 'Invalid payload' }, 400);
   }
 
   const tenantId = getTenantId(c);
-  const published: string[] = [];
+  const inc = parsed.data.event.data;
 
-  for (const msg of parsed.data.messages) {
-    if (msg.event !== 'incident.trigger' && msg.event !== 'incident.escalate') continue;
+  // Prefer the explicit incident priority (P1–P4) when set; fall back to urgency.
+  const prioritySummary = inc.priority?.summary;
+  const severity: Severity =
+    prioritySummary && /^P[1-4]$/.test(prioritySummary)
+      ? (prioritySummary as Severity)
+      : inc.urgency === 'high'
+        ? 'P1'
+        : 'P2';
 
-    const inc = msg.incident;
-    const severity: Severity = inc.urgency === 'high' ? 'P1' : 'P2';
-    const event: IncidentEvent = {
-      id: crypto.randomUUID(),
-      tenantId,
-      source: 'pagerduty',
-      severity,
-      service: inc.service.name,
-      title: maskPII(inc.title),
-      description: maskPII(inc.description ?? ''),
-      ...(inc.html_url && { alertUrl: inc.html_url }),
-      receivedAt: Date.now(),
-      metadata: { pdIncidentId: inc.id },
-    };
+  const event: IncidentEvent = {
+    id: crypto.randomUUID(),
+    tenantId,
+    source: 'pagerduty',
+    severity,
+    service: inc.service.summary,
+    // v3 incident data carries no free-text description; the title is the signal.
+    title: maskPII(inc.title),
+    description: maskPII(inc.title),
+    ...(inc.html_url && { alertUrl: inc.html_url }),
+    receivedAt: Date.now(),
+    metadata: { pdIncidentId: inc.id, pdEventType: parsed.data.event.event_type },
+  };
 
-    await c.env.INCIDENT_QUEUE.send(event);
-    published.push(event.id);
-  }
-
-  return c.json({ received: published.length, ids: published });
+  await c.env.INCIDENT_QUEUE.send(event);
+  return c.json({ received: 1, ids: [event.id] });
 });
 
 const DatadogPayloadSchema = z.object({
