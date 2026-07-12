@@ -53,11 +53,18 @@ async function callExternalViaGateway(
   const provider = isAnthropic ? 'anthropic' : 'openai';
   const url = `${gatewayEndpoint}/${provider}/v1/${isAnthropic ? 'messages' : 'chat/completions'}`;
 
-  const apiKey = isAnthropic ? env.ANTHROPIC_API_KEY : '';
+  // AI Gateway is a pass-through proxy: authenticate with the provider's own
+  // scheme (Anthropic: x-api-key; OpenAI: Authorization bearer). The
+  // cf-aig-authorization header is only for gateways with Authenticated
+  // Gateway enabled and takes a Cloudflare-issued token, not a provider key.
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'cf-aig-authorization': `Bearer ${apiKey}`,
   };
+  if (isAnthropic) {
+    headers['x-api-key'] = env.ANTHROPIC_API_KEY;
+  } else {
+    headers['Authorization'] = `Bearer ${env.OPENAI_API_KEY}`;
+  }
 
   let body: string;
   if (isAnthropic) {
