@@ -51,7 +51,7 @@ webhookRouter.post('/pagerduty', async (c) => {
       service: inc.service.name,
       title: maskPII(inc.title),
       description: maskPII(inc.description ?? ''),
-      alertUrl: inc.html_url,
+      ...(inc.html_url && { alertUrl: inc.html_url }),
       receivedAt: Date.now(),
       metadata: { pdIncidentId: inc.id },
     };
@@ -105,7 +105,7 @@ webhookRouter.post('/datadog', async (c) => {
     service: parsed.data.service ?? 'unknown',
     title: maskPII(parsed.data.alert_title),
     description: maskPII(parsed.data.body ?? ''),
-    alertUrl: parsed.data.url,
+    ...(parsed.data.url && { alertUrl: parsed.data.url }),
     receivedAt: Date.now(),
     metadata: { ddAlertId: parsed.data.alert_id },
   };

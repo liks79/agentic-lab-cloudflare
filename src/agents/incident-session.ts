@@ -32,7 +32,8 @@ export class IncidentSession implements DurableObject {
   }
 
   async getContext(): Promise<AgentContext | null> {
-    return this.state.storage.get<AgentContext>('context') ?? null;
+    const ctx = await this.state.storage.get<AgentContext>('context');
+    return ctx ?? null;
   }
 
   async saveContext(ctx: AgentContext): Promise<void> {
