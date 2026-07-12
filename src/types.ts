@@ -19,6 +19,7 @@ export interface Env {
   // Secrets (injected at runtime)
   CF_AI_GATEWAY_ENDPOINT: string;
   ANTHROPIC_API_KEY: string;
+  OPENAI_API_KEY: string;
   PAGERDUTY_WEBHOOK_SECRET: string;
   DATADOG_API_KEY: string;
   DATADOG_APP_KEY: string;
