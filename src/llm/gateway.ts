@@ -1,5 +1,9 @@
 import type { Env, LLMRequest, LLMResponse } from '../types';
 
+type WorkersAITextGenerationModel = {
+  [Name in keyof AiModels]: AiModels[Name] extends BaseAiTextGeneration ? Name : never;
+}[keyof AiModels];
+
 export async function callLLM(env: Env, req: LLMRequest): Promise<LLMResponse> {
   const start = Date.now();
 
@@ -16,7 +20,7 @@ export async function callLLM(env: Env, req: LLMRequest): Promise<LLMResponse> {
 }
 
 async function callWorkersAI(env: Env, req: LLMRequest, start: number): Promise<LLMResponse> {
-  const response = await env.AI.run(req.model as BaseAiTextGenerationModels, {
+  const response = await env.AI.run(req.model as WorkersAITextGenerationModel, {
     messages: [
       { role: 'system', content: req.systemPrompt },
       { role: 'user', content: req.userMessage },

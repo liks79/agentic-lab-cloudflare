@@ -5,6 +5,22 @@ interface HistorySearchInput {
   topK?: number;
 }
 
+type WorkersAIEmbeddingModel = keyof AiModels;
+
+interface WorkersAIEmbeddingResponse {
+  data?: number[][];
+  shape?: number[];
+}
+
+async function generateEmbedding(env: Env, text: string): Promise<number[] | null> {
+  const embeddingResult = await env.AI.run(
+    env.EMBEDDING_MODEL as WorkersAIEmbeddingModel,
+    { text: [text] },
+  ) as WorkersAIEmbeddingResponse;
+
+  return embeddingResult.data?.[0] ?? null;
+}
+
 export async function searchIncidentHistory(
   env: Env,
   tenantId: string,
@@ -14,12 +30,7 @@ export async function searchIncidentHistory(
   const topK = input.topK ?? 3;
 
   // Generate embedding for the query
-  const embeddingResult = await env.AI.run(
-    env.EMBEDDING_MODEL as BaseAiTextEmbeddingsModels,
-    { text: [input.query] },
-  );
-
-  const vector = embeddingResult.data?.[0];
+  const vector = await generateEmbedding(env, input.query);
   if (!vector) {
     return { success: false, error: 'Failed to generate embedding', latencyMs: Date.now() - start };
   }
@@ -48,12 +59,7 @@ export async function indexIncident(
   text: string,
   metadata: Record<string, string | number | boolean>,
 ): Promise<void> {
-  const embeddingResult = await env.AI.run(
-    env.EMBEDDING_MODEL as BaseAiTextEmbeddingsModels,
-    { text: [text] },
-  );
-
-  const vector = embeddingResult.data?.[0];
+  const vector = await generateEmbedding(env, text);
   if (!vector) throw new Error('Embedding failed');
 
   await env.INCIDENT_VECTORS.insert([

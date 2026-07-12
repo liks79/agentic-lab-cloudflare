@@ -22,6 +22,7 @@ export interface Env {
   PAGERDUTY_WEBHOOK_SECRET: string;
   DATADOG_API_KEY: string;
   DATADOG_APP_KEY: string;
+  DATADOG_SITE: string;
   SLACK_BOT_TOKEN: string;
   SLACK_SIGNING_SECRET: string;
   SLACK_INCIDENT_CHANNEL_ID: string;
