@@ -62,7 +62,10 @@ ENVIRONMENT = "production"
 LOG_LEVEL = "info"
 MAX_AGENT_STEPS = "10"
 RCA_CONFIDENCE_THRESHOLD = "0.85"
-LLM_FALLBACK_MODEL = "claude-sonnet-4-6"
+# Fallback runs on Workers AI too (no external API key needed).
+# To route steps 2+ through Claude via AI Gateway instead, set this to a
+# claude-* model id (e.g. "claude-sonnet-4-6") and provide ANTHROPIC_API_KEY.
+LLM_FALLBACK_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 WORKERS_AI_MODEL = "@cf/meta/llama-3.1-70b-instruct"
 EMBEDDING_MODEL = "@cf/baai/bge-large-en-v1.5"
 
