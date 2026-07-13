@@ -17,6 +17,7 @@ new_classes = ["IncidentSession"]
 binding = "DB"
 database_name = "sre-agent-db"
 database_id = "REPLACE_WITH_YOUR_D1_ID"  # wrangler d1 create sre-agent-db
+migrations_dir = "src/db/migrations"
 
 # ---- Workers KV ----
 [[kv_namespaces]]
@@ -94,6 +95,7 @@ vars = { ENVIRONMENT = "staging", LOG_LEVEL = "debug" }
 binding = "DB"
 database_name = "sre-agent-db-staging"
 database_id = "REPLACE_WITH_STAGING_D1_ID"
+migrations_dir = "src/db/migrations"
 
 [[env.staging.kv_namespaces]]
 binding = "CONFIG_KV"
