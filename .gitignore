@@ -10,6 +10,7 @@ worker-configuration.d.ts
 
 # Wrangler / Miniflare local state
 .wrangler/
+.wrangler-config/
 .mf/
 wrangler.lock
 
@@ -67,3 +68,7 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Local-only docs (not for publishing)
+docs/development-guide.md
+docs/private_reference/
