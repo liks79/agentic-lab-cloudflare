@@ -142,13 +142,14 @@ webhookRouter.post('/datadog', async (c) => {
 
 // Slack slash command: /incident <description>
 webhookRouter.post('/slack', async (c) => {
-  if (!(await verifySlackRequest(c))) {
+  const rawBody = await c.req.text();
+  if (!(await verifySlackRequest(c, rawBody))) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
-  const formData = await c.req.formData();
-  const text = formData.get('text')?.toString() ?? '';
-  const userId = formData.get('user_id')?.toString() ?? 'unknown';
+  const formData = new URLSearchParams(rawBody);
+  const text = formData.get('text') ?? '';
+  const userId = formData.get('user_id') ?? 'unknown';
   const tenantId = getTenantId(c);
 
   const event: IncidentEvent = {
