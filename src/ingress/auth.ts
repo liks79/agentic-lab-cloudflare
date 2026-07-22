@@ -35,7 +35,7 @@ export async function verifyDatadogWebhook(c: Context<{ Bindings: Env }>): Promi
   return authHeader === expected;
 }
 
-export async function verifySlackRequest(c: Context<{ Bindings: Env }>): Promise<boolean> {
+export async function verifySlackRequest(c: Context<{ Bindings: Env }>, body?: string): Promise<boolean> {
   const timestamp = c.req.header('X-Slack-Request-Timestamp');
   const slackSignature = c.req.header('X-Slack-Signature');
   if (!timestamp || !slackSignature) return false;
@@ -43,8 +43,8 @@ export async function verifySlackRequest(c: Context<{ Bindings: Env }>): Promise
   const age = Math.abs(Date.now() / 1000 - Number(timestamp));
   if (age > 300) return false; // Replay attack guard: reject if older than 5 min
 
-  const body = await c.req.text();
-  const baseString = `v0:${timestamp}:${body}`;
+  const rawBody = body ?? await c.req.text();
+  const baseString = `v0:${timestamp}:${rawBody}`;
   const key = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(c.env.SLACK_SIGNING_SECRET),

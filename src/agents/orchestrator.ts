@@ -38,6 +38,10 @@ export async function runIncidentAgent(event: IncidentEvent, env: Env): Promise<
 
   await saveSessionContext(session, ctx);
 
+  // Persist the incident row before any agent_actions insert — agent_actions
+  // has a FOREIGN KEY on incidents(id), so the parent row must exist first.
+  await persistIncidentStart(env, event);
+
   const tools: ToolRegistry = buildToolRegistry(env, event.tenantId);
 
   // ReAct loop
@@ -188,6 +192,28 @@ ${rca.evidence.map((e) => `• ${e}`).join('\n')}
 *Suggested Mitigations:*
 ${mitigations || 'None identified — escalating to on-call'}`,
   });
+}
+
+async function persistIncidentStart(env: Env, event: IncidentEvent): Promise<void> {
+  // Idempotent: queue retries may re-run the same incident, so ignore conflicts
+  // on the primary key rather than failing the whole agent run.
+  await env.DB.prepare(
+    `INSERT INTO incidents (id, tenant_id, source, severity, service, title, description, alert_url, status, received_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)
+     ON CONFLICT(id) DO NOTHING`,
+  )
+    .bind(
+      event.id,
+      event.tenantId,
+      event.source,
+      event.severity,
+      event.service,
+      event.title,
+      event.description,
+      event.alertUrl ?? null,
+      event.receivedAt,
+    )
+    .run();
 }
 
 async function persistStepToD1(env: Env, event: IncidentEvent, step: AgentStep): Promise<void> {
