@@ -87,9 +87,28 @@ EMBEDDING_MODEL = "@cf/baai/bge-large-en-v1.5"
 # CF_AI_GATEWAY_ENDPOINT
 
 # ---- Staging Environment ----
+# NOTE: Wrangler v4 does NOT inherit top-level bindings/vars into named
+# environments, so every binding and var below must be declared explicitly.
+# Keep this section in sync with the top-level config above.
 [env.staging]
 name = "cloudflare-sre-agent-staging"
-vars = { ENVIRONMENT = "staging", LOG_LEVEL = "debug" }
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+LOG_LEVEL = "debug"
+MAX_AGENT_STEPS = "10"
+RCA_CONFIDENCE_THRESHOLD = "0.85"
+LLM_FALLBACK_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+WORKERS_AI_MODEL = "@cf/meta/llama-3.1-70b-instruct"
+EMBEDDING_MODEL = "@cf/baai/bge-large-en-v1.5"
+
+[[env.staging.durable_objects.bindings]]
+name = "INCIDENT_SESSION"
+class_name = "IncidentSession"
+
+[[env.staging.migrations]]
+tag = "v1"
+new_classes = ["IncidentSession"]
 
 [[env.staging.d1_databases]]
 binding = "DB"
@@ -100,3 +119,31 @@ migrations_dir = "src/db/migrations"
 [[env.staging.kv_namespaces]]
 binding = "CONFIG_KV"
 id = "REPLACE_WITH_STAGING_KV_ID"
+
+[[env.staging.r2_buckets]]
+binding = "INCIDENT_DOCS"
+bucket_name = "sre-agent-incident-docs-staging"
+
+[[env.staging.queues.producers]]
+binding = "INCIDENT_QUEUE"
+queue = "sre-agent-incidents-staging"
+
+[[env.staging.queues.consumers]]
+queue = "sre-agent-incidents-staging"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 3
+dead_letter_queue = "sre-agent-incidents-staging-dlq"
+
+[[env.staging.vectorize]]
+binding = "INCIDENT_VECTORS"
+index_name = "sre-incident-embeddings-staging"
+
+[env.staging.ai]
+binding = "AI"
+
+[[env.staging.unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1002"
+simple = { limit = 100, period = 60 }
